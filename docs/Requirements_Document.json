@@ -1,0 +1,237 @@
+{
+  "source_file": "Requirements Document.docx",
+  "document_title": "Requirements Document",
+  "format": "structured_docx_conversion",
+  "sections": [
+    {
+      "title": "Introduction",
+      "items": [
+        {
+          "type": "paragraph",
+          "text": "The Veeqo Packaging Marketplace is a standalone public storefront website that link-outs from Veeqo and sells packaging materials (boxes, mailers, tape, labels, void fill, etc.) sourced from and fulfilled by an external third-party supplier. Veeqo holds no inventory. It operates the storefront, processes checkout and payment, hands fulfillment off to the supplier, and earns a commission calculated as a configurable percentage of each order's value.",
+          "source_paragraph": 3
+        },
+        {
+          "type": "paragraph",
+          "text": "The system has three primary responsibilities: (1) present a supplier-sourced product catalog to shoppers arriving from Veeqo, (2) accept and process orders including payment and hand-off of fulfillment to the supplier, and (3) track order value, gross revenue, and Veeqo's commission split per order so finance and business stakeholders can report on marketplace performance.",
+          "source_paragraph": 4
+        },
+        {
+          "type": "paragraph",
+          "text": "These requirements are derived from the approved design document and are traceable to its components (Storefront, Catalog Service, Order Service, Payment Service, Revenue and Commission Service, Reporting Service, Supplier Integration Adapter), data models, key functions, correctness properties (P1-P9), and error handling.",
+          "source_paragraph": 5
+        }
+      ]
+    },
+    {
+      "title": "Glossary",
+      "items": [
+        { "type": "paragraph", "text": "Storefront: The public-facing web application that lists packaging materials, handles the shopper journey, and is the entry point for Veeqo link-outs.", "source_paragraph": 7 },
+        { "type": "paragraph", "text": "Catalog_Service: The service that owns the marketplace's view of supplier products, syncs from the supplier, and serves catalog reads.", "source_paragraph": 8 },
+        { "type": "paragraph", "text": "Order_Service: The service that creates and manages orders through their lifecycle and coordinates payment, commission recording, and fulfillment.", "source_paragraph": 9 },
+        { "type": "paragraph", "text": "Payment_Service: The service that abstracts the external Payment Provider and never stores raw card data.", "source_paragraph": 10 },
+        { "type": "paragraph", "text": "Revenue_Commission_Service: The service that computes and persists per-order revenue and Veeqo's commission split; the source of truth for financial tracking.", "source_paragraph": 11 },
+        { "type": "paragraph", "text": "Reporting_Service: The service that aggregates orders, revenue, and commission for reports and dashboards.", "source_paragraph": 12 },
+        { "type": "paragraph", "text": "Supplier_Adapter: The integration component that encapsulates all communication with the external third-party supplier (catalog pull, fulfillment submission, status polling).", "source_paragraph": 13 },
+        { "type": "paragraph", "text": "System: The Veeqo Packaging Marketplace as a whole, including all services above.", "source_paragraph": 14 },
+        { "type": "paragraph", "text": "Supplier: The external third-party that sources and fulfills packaging materials.", "source_paragraph": 15 },
+        { "type": "paragraph", "text": "Payment_Provider (PSP): The external payment service that processes charges and refunds.", "source_paragraph": 16 },
+        { "type": "paragraph", "text": "Attribution: A record of how a shopper arrived, including source (VEEQO, DIRECT, OTHER), an opaque token, and capture time.", "source_paragraph": 17 },
+        { "type": "paragraph", "text": "Order_Value: The commission basis total for an order, equal to subtotal + shipping + tax.", "source_paragraph": 18 },
+        { "type": "paragraph", "text": "Subtotal: The sum of all order line totals, where each line total is unitPriceAtPurchase multiplied by quantity.", "source_paragraph": 19 },
+        { "type": "paragraph", "text": "Gross_Revenue: The total amount the shopper paid for an order.", "source_paragraph": 20 },
+        { "type": "paragraph", "text": "Commission_Rate: A configured percentage (0 to 100) with an effective period and a basis (SUBTOTAL or ORDER_VALUE) applied to compute Veeqo's commission.", "source_paragraph": 21 },
+        { "type": "paragraph", "text": "Veeqo_Commission: The amount Veeqo earns on an order, computed as commissionBasisAmount multiplied by the rate percent divided by 100.", "source_paragraph": 22 },
+        { "type": "paragraph", "text": "Supplier_Payable: The amount owed to the supplier, equal to gross revenue minus Veeqo commission per the defined split basis.", "source_paragraph": 23 },
+        { "type": "paragraph", "text": "Revenue_Record: An immutable record capturing gross revenue, commission basis amount, commission rate percent used, Veeqo commission, supplier payable, currency, attribution source, and reversal state for an order.", "source_paragraph": 24 },
+        { "type": "paragraph", "text": "Round_Trip_Tolerance: The smallest currency unit within which financial reconciliation must hold.", "source_paragraph": 25 }
+      ]
+    },
+    {
+      "title": "Requirements",
+      "items": [
+        {
+          "type": "requirement",
+          "title": "Requirement 1: Veeqo Link-Out and Attribution Capture",
+          "user_story": "As a shopper arriving from Veeqo, I want my referral to be captured, so that orders I place can be traced back to Veeqo for revenue attribution.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "WHEN a shopper arrives via a Veeqo link-out carrying an attribution token, THE Storefront SHALL capture the attribution token and persist it in the session.", "source_paragraph": 30 },
+            { "type": "paragraph", "text": "WHERE the attribution source is VEEQO, THE System SHALL require the attribution token to be non-empty.", "source_paragraph": 31 },
+            { "type": "paragraph", "text": "WHEN an order is created from a session with a captured attribution, THE Order_Service SHALL store the attribution on the order with the token preserved unmodified from session capture.", "source_paragraph": 32 },
+            { "type": "paragraph", "text": "THE System SHALL treat the attribution token as untrusted input and store it as an opaque value.", "source_paragraph": 33 },
+            { "type": "paragraph", "text": "THE System SHALL record the attribution capture time at or before the order creation time.", "source_paragraph": 34 }
+          ]
+        },
+        {
+          "type": "requirement",
+          "title": "Requirement 2: Catalog Synchronization from Supplier",
+          "user_story": "As the marketplace operator, I want the catalog to sync from the supplier on a schedule, so that shoppers see current products, prices, and availability without Veeqo holding inventory.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "WHEN a scheduled catalog sync is triggered, THE Catalog_Service SHALL fetch catalog data from the Supplier through the Supplier_Adapter.", "source_paragraph": 38 },
+            { "type": "paragraph", "text": "WHEN supplier catalog data is fetched, THE Catalog_Service SHALL normalize and validate each product before persisting it.", "source_paragraph": 39 },
+            { "type": "paragraph", "text": "IF a fetched supplier product fails validation, THEN THE Catalog_Service SHALL skip that product, log the skip, and continue processing remaining products.", "source_paragraph": 40 },
+            { "type": "paragraph", "text": "WHEN a valid supplier product is processed, THE Catalog_Service SHALL upsert the product and mark it active.", "source_paragraph": 41 },
+            { "type": "paragraph", "text": "WHEN a previously active product is absent from the supplier feed in a successful sync, THE Catalog_Service SHALL mark that product inactive.", "source_paragraph": 42 },
+            { "type": "paragraph", "text": "WHEN a catalog sync completes, THE Catalog_Service SHALL return a sync result reporting the counts of added, updated, and deactivated products.", "source_paragraph": 43 }
+          ]
+        },
+        {
+          "type": "requirement",
+          "title": "Requirement 3: Product Catalog Reads",
+          "user_story": "As a shopper, I want to browse and view packaging products, so that I can decide what to buy.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "WHEN a shopper requests the product list with a filter, THE Storefront SHALL return only active products matching the filter.", "source_paragraph": 47 },
+            { "type": "paragraph", "text": "WHEN a shopper views a product by SKU, THE Catalog_Service SHALL return the product record for that SKU.", "source_paragraph": 48 },
+            { "type": "paragraph", "text": "THE Catalog_Service SHALL serve catalog reads from the operational datastore without live-calling the Supplier on shopper reads.", "source_paragraph": 49 },
+            { "type": "paragraph", "text": "THE Catalog_Service SHALL prevent an inactive product from being purchasable.", "source_paragraph": 50 },
+            { "type": "paragraph", "text": "THE Catalog_Service SHALL enforce that each product has a non-empty unique SKU, a unit price of at least zero, a supplier cost of at least zero, and a valid ISO 4217 currency code.", "source_paragraph": 51 }
+          ]
+        },
+        {
+          "type": "requirement",
+          "title": "Requirement 4: Cart Pricing Validation at Checkout",
+          "user_story": "As a shopper, I want my cart validated against current prices at checkout, so that I am charged the correct amount and never a stale price.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "WHEN a shopper initiates checkout, THE Catalog_Service SHALL validate that each cart line price equals the current catalog unit price for that SKU.", "source_paragraph": 55 },
+            { "type": "paragraph", "text": "IF a cart line price does not match the current catalog price, THEN THE System SHALL fail pricing validation, decline to create the order, and present updated pricing to the shopper.", "source_paragraph": 56 },
+            { "type": "paragraph", "text": "WHEN pricing validation succeeds, THE Order_Service SHALL proceed to create the order.", "source_paragraph": 57 }
+          ]
+        },
+        {
+          "type": "requirement",
+          "title": "Requirement 5: Order Creation",
+          "user_story": "As a shopper, I want to place an order for packaging materials, so that I can purchase what is in my cart.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "WHEN an order is created, THE Order_Service SHALL require the cart to be non-empty and each line to reference an active catalog product with a quantity greater than zero.", "source_paragraph": 61 },
+            { "type": "paragraph", "text": "WHEN an order is created, THE Order_Service SHALL set the order subtotal equal to the sum of all line totals, where each line total equals unitPriceAtPurchase multiplied by quantity.", "source_paragraph": 62 },
+            { "type": "paragraph", "text": "WHEN an order is created, THE Order_Service SHALL set the order value equal to subtotal plus shipping plus tax.", "source_paragraph": 63 },
+            { "type": "paragraph", "text": "WHEN an order is created, THE Order_Service SHALL set the order status to PENDING_PAYMENT.", "source_paragraph": 64 },
+            { "type": "paragraph", "text": "WHEN an order is created, THE Order_Service SHALL take no payment and submit no fulfillment.", "source_paragraph": 65 },
+            { "type": "paragraph", "text": "THE Order_Service SHALL prevent any order line from referencing a product whose active flag is false at order creation time.", "source_paragraph": 66 },
+            { "type": "paragraph", "text": "THE Order_Service SHALL permit order status transitions only along the path PENDING_PAYMENT to PAID to CONFIRMED to FULFILLED, with CANCELLED reachable from PENDING_PAYMENT or PAID and REFUNDED reachable from CONFIRMED or FULFILLED.", "source_paragraph": 67 },
+            { "type": "paragraph", "text": "IF a requested status transition is not permitted, THEN THE Order_Service SHALL reject the transition.", "source_paragraph": 68 }
+          ]
+        },
+        {
+          "type": "requirement",
+          "title": "Requirement 6: Payment Processing",
+          "user_story": "As a shopper, I want to pay for my order securely, so that my purchase is completed without exposing my card data.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "WHEN an order is in PENDING_PAYMENT status, THE Payment_Service SHALL authorize the order value through the Payment_Provider.", "source_paragraph": 72 },
+            { "type": "paragraph", "text": "WHEN payment succeeds, THE Payment_Service SHALL return a payment reference and THE Order_Service SHALL set the order status to PAID.", "source_paragraph": 73 },
+            { "type": "paragraph", "text": "IF the Payment_Provider declines or times out during authorization, THEN THE Order_Service SHALL set the order status to CANCELLED and create no revenue record.", "source_paragraph": 74 },
+            { "type": "paragraph", "text": "IF payment fails, THEN THE Storefront SHALL present a non-technical retry message to the shopper.", "source_paragraph": 75 },
+            { "type": "paragraph", "text": "THE Payment_Service SHALL store only payment provider references and amounts and SHALL store no raw card data.", "source_paragraph": 76 },
+            { "type": "paragraph", "text": "WHERE a refund is requested, THE Payment_Service SHALL process the refund through the Payment_Provider.", "source_paragraph": 77 }
+          ]
+        },
+        {
+          "type": "requirement",
+          "title": "Requirement 7: Revenue and Commission Recording",
+          "user_story": "As a finance stakeholder, I want per-order revenue and Veeqo's commission recorded immutably at order confirmation, so that historical financial data stays stable and accurate.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "WHEN an order reaches PAID status with a payment reference set, THE Revenue_Commission_Service SHALL record a revenue record for that order.", "source_paragraph": 81 },
+            { "type": "paragraph", "text": "WHEN recording a revenue record, THE Revenue_Commission_Service SHALL compute Veeqo commission as the commission basis amount multiplied by the active commission rate percent divided by 100, rounded to the currency unit.", "source_paragraph": 82 },
+            { "type": "paragraph", "text": "WHEN recording a revenue record, THE Revenue_Commission_Service SHALL set gross revenue equal to the order value and set supplier payable equal to gross revenue minus Veeqo commission per the defined split basis.", "source_paragraph": 83 },
+            { "type": "paragraph", "text": "WHEN recording a revenue record, THE Revenue_Commission_Service SHALL capture the commission rate percent that was active at the order creation time and store it immutably on the record.", "source_paragraph": 84 },
+            { "type": "paragraph", "text": "WHILE a non-reversed revenue record already exists for an order, THE Revenue_Commission_Service SHALL produce at most one non-reversed revenue record for that order.", "source_paragraph": 85 },
+            { "type": "paragraph", "text": "THE Revenue_Commission_Service SHALL keep each revenue record immutable once written and SHALL represent reversals as linked reversing records rather than mutating existing records.", "source_paragraph": 86 },
+            { "type": "paragraph", "text": "THE Revenue_Commission_Service SHALL compute Veeqo commission as a non-negative value not exceeding the commission basis amount.", "source_paragraph": 87 }
+          ]
+        },
+        {
+          "type": "requirement",
+          "title": "Requirement 8: Commission Rate Configuration",
+          "user_story": "As a finance administrator, I want to configure the commission rate, so that Veeqo's share of order value can be set and adjusted over time.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "THE Revenue_Commission_Service SHALL accept a commission rate percent between 0 and 100 inclusive.", "source_paragraph": 91 },
+            { "type": "paragraph", "text": "THE Revenue_Commission_Service SHALL apply the commission rate against the configured basis of either subtotal or order value.", "source_paragraph": 92 },
+            { "type": "paragraph", "text": "THE Revenue_Commission_Service SHALL keep commission rate periods non-overlapping such that exactly one rate is active at any time.", "source_paragraph": 93 },
+            { "type": "paragraph", "text": "WHEN the commission rate is changed, THE System SHALL record who changed it, when, and the previous and new values as an audited action.", "source_paragraph": 94 },
+            { "type": "paragraph", "text": "WHEN a commission rate is updated after orders have been recorded, THE Revenue_Commission_Service SHALL leave the commission rate percent stored on existing revenue records unchanged.", "source_paragraph": 95 }
+          ]
+        },
+        {
+          "type": "requirement",
+          "title": "Requirement 9: Fulfillment Hand-Off to Supplier",
+          "user_story": "As the marketplace operator, I want confirmed orders submitted to the supplier for fulfillment, so that shoppers receive their packaging materials without Veeqo holding inventory.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "WHEN an order is PAID and its revenue record has been created, THE Order_Service SHALL submit the order to the Supplier for fulfillment through the Supplier_Adapter.", "source_paragraph": 99 },
+            { "type": "paragraph", "text": "WHEN the Supplier accepts the fulfillment submission, THE Order_Service SHALL store the returned supplier order id and set the order status to CONFIRMED.", "source_paragraph": 100 },
+            { "type": "paragraph", "text": "IF the Supplier rejects the fulfillment submission or is unreachable, THEN THE Order_Service SHALL keep the order in PAID status, retain the existing revenue record, and log the failure for reconciliation.", "source_paragraph": 101 },
+            { "type": "paragraph", "text": "WHERE an order remains PAID after a fulfillment failure, THE System SHALL retry fulfillment via a background job.", "source_paragraph": 102 }
+          ]
+        },
+        {
+          "type": "requirement",
+          "title": "Requirement 10: Refunds and Revenue Reversal",
+          "user_story": "As a finance stakeholder, I want refunds to reverse the associated revenue and commission, so that financial reporting nets correctly for cancelled or unfulfillable orders.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "WHEN an order is refunded, THE Revenue_Commission_Service SHALL create a reversing revenue record linked to the original order.", "source_paragraph": 106 },
+            { "type": "paragraph", "text": "WHEN a reversing revenue record is created, THE Revenue_Commission_Service SHALL cause the summed revenue and summed commission for the affected order to net to zero.", "source_paragraph": 107 },
+            { "type": "paragraph", "text": "WHERE an order is permanently unfulfillable after payment, THE System SHALL issue a refund that triggers a reversing revenue record.", "source_paragraph": 108 }
+          ]
+        },
+        {
+          "type": "requirement",
+          "title": "Requirement 11: Revenue and Order Reporting",
+          "user_story": "As a finance or business stakeholder, I want time-bounded revenue and order reports, so that I can measure marketplace performance and Veeqo's commission.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "WHEN a revenue summary is requested for a date range and attribution source, THE Reporting_Service SHALL aggregate order count, gross revenue, Veeqo commission, and supplier payable for that range and source.", "source_paragraph": 112 },
+            { "type": "paragraph", "text": "WHEN aggregating a revenue summary, THE Reporting_Service SHALL include only non-reversed revenue records within the requested range and source.", "source_paragraph": 113 },
+            { "type": "paragraph", "text": "WHEN aggregating a revenue summary, THE Reporting_Service SHALL ensure the accumulated total commission never exceeds the accumulated total gross revenue.", "source_paragraph": 114 },
+            { "type": "paragraph", "text": "WHEN aggregating a revenue summary, THE Reporting_Service SHALL ensure total commission plus total supplier payable reconciles to total gross revenue per the split basis.", "source_paragraph": 115 },
+            { "type": "paragraph", "text": "WHEN an order report is requested for a date range and filter, THE Reporting_Service SHALL return the matching orders.", "source_paragraph": 116 },
+            { "type": "paragraph", "text": "IF the requested date range has a start after its end, THEN THE Reporting_Service SHALL reject the request.", "source_paragraph": 117 }
+          ]
+        },
+        {
+          "type": "requirement",
+          "title": "Requirement 12: Catalog Sync Resilience",
+          "user_story": "As the marketplace operator, I want catalog sync to fail safely, so that a supplier outage never wipes the storefront catalog.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "IF a catalog fetch fails or returns malformed data, THEN THE Catalog_Service SHALL abort the sync run without deactivating existing products.", "source_paragraph": 121 },
+            { "type": "paragraph", "text": "IF a catalog fetch fails, THEN THE Catalog_Service SHALL log the failure and raise an alert.", "source_paragraph": 122 },
+            { "type": "paragraph", "text": "WHILE a catalog fetch is failing, THE Catalog_Service SHALL continue serving the last-known-good catalog.", "source_paragraph": 123 },
+            { "type": "paragraph", "text": "THE Catalog_Service SHALL retry the sync on the next scheduled run after a failed sync.", "source_paragraph": 124 }
+          ]
+        },
+        {
+          "type": "requirement",
+          "title": "Requirement 13: Commission Rate Ambiguity Handling",
+          "user_story": "As a finance stakeholder, I want commission recording to fail closed when the rate is ambiguous, so that revenue is never recorded with a guessed rate.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "IF no active commission rate is found at order time, THEN THE Revenue_Commission_Service SHALL block order confirmation and alert finance rather than record commission.", "source_paragraph": 128 },
+            { "type": "paragraph", "text": "IF overlapping commission rates are found at order time, THEN THE Revenue_Commission_Service SHALL block order confirmation and alert finance rather than record commission.", "source_paragraph": 129 },
+            { "type": "paragraph", "text": "WHEN commission rate configuration is corrected, THE System SHALL permit order confirmation to be retried.", "source_paragraph": 130 }
+          ]
+        },
+        {
+          "type": "requirement",
+          "title": "Requirement 14: Order Placement Orchestration",
+          "user_story": "As the marketplace operator, I want the end-to-end checkout flow ordered so payment is never taken without a corresponding revenue record, so that the system stays financially consistent.",
+          "acceptance_criteria": [],
+          "items": [
+            { "type": "paragraph", "text": "WHEN a shopper checks out, THE System SHALL validate cart pricing, create the pending order, take payment, record revenue and commission, and submit fulfillment in that order.", "source_paragraph": 134 },
+            { "type": "paragraph", "text": "THE System SHALL ensure that for every order in CONFIRMED or FULFILLED status there exists exactly one non-reversed revenue record.", "source_paragraph": 135 },
+            { "type": "paragraph", "text": "IF payment is not captured, THEN THE System SHALL create no revenue record and submit no fulfillment.", "source_paragraph": 136 },
+            { "type": "paragraph", "text": "WHEN checkout completes successfully, THE Storefront SHALL present an order confirmation including the order id and the supplier order id.", "source_paragraph": 137 }
+          ]
+        }
+      ]
+    }
+  ]
+}
