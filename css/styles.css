@@ -481,3 +481,39 @@ a:hover { text-decoration: underline; }
 }
 /* In the featured card the price block sits in its own container */
 .vq-feature__price .vq-pricebox { margin: 2px 0; }
+
+/* ---------- Admin gate (demo deterrent on Finance Dashboard) ---------- */
+/* Hide the real page content while the gate is up. */
+body.vq-locked .vq-header,
+body.vq-locked .vq-main,
+body.vq-locked .vq-footer { display: none !important; }
+
+.vq-gate {
+  position: fixed; inset: 0;
+  background: linear-gradient(135deg, var(--vq-navy) 0%, var(--vq-navy-2) 100%);
+  display: grid; place-items: center;
+  padding: 20px; z-index: 2000;
+}
+.vq-gate__card {
+  background: #fff; border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  width: 100%; max-width: 380px;
+  padding: 28px 26px;
+  border-top: 4px solid var(--vq-teal);
+}
+.vq-gate__brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; color: var(--vq-ink); margin-bottom: 18px; }
+.vq-gate__brand .vq-logo__sub { color: var(--vq-teal-dark); }
+.vq-gate__title { margin: 0 0 6px; font-size: 20px; color: var(--vq-ink); }
+.vq-gate__sub { margin: 0 0 20px; font-size: 13px; color: var(--vq-muted); line-height: 1.5; }
+.vq-gate__form { display: flex; flex-direction: column; gap: 8px; }
+.vq-gate__label { font-size: 12px; font-weight: 600; color: var(--vq-ink); }
+.vq-gate__input {
+  width: 100%; box-sizing: border-box; padding: 10px 12px;
+  border: 1px solid var(--vq-line); border-radius: var(--radius-sm);
+  font-size: 14px; font-family: var(--font);
+}
+.vq-gate__input:focus { outline: none; border-color: var(--vq-teal); box-shadow: 0 0 0 3px rgba(23,195,178,0.2); }
+.vq-gate__btn { margin-top: 6px; background: var(--vq-teal); color: var(--vq-navy); width: 100%; }
+.vq-gate__btn:hover { background: var(--vq-teal-dark); }
+.vq-gate__error { min-height: 16px; font-size: 12px; color: var(--vq-danger); font-weight: 600; }
+.vq-gate__note { margin: 16px 0 0; font-size: 11px; color: var(--vq-muted); text-align: center; }
