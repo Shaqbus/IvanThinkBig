@@ -16,6 +16,29 @@
     return new Intl.NumberFormat("en-US", { style: "currency", currency: c || "USD" }).format(n);
   };
 
+  /* Price block: shows the illustrative Market Price struck through, the Veeqo
+   * price, and a savings badge. Market/savings values are illustrative
+   * reference figures (not a live competitor quote) baked into products.json.
+   * Falls back to a plain price when a product has no marketPrice. */
+  function priceBlock(p) {
+    var hasCompare = typeof p.marketPrice === "number" && p.marketPrice > p.unitPrice;
+    if (!hasCompare) {
+      return '<span class="vq-price">' + money(p.unitPrice, p.currency) + '</span>';
+    }
+    var save = p.savingsPct || Math.round((1 - p.unitPrice / p.marketPrice) * 100);
+    return '' +
+      '<span class="vq-pricebox">' +
+        '<span class="vq-price-market" title="Illustrative market price">' +
+          '<span class="vq-price-market__label">Market Price</span>' +
+          '<s>' + money(p.marketPrice, p.currency) + '</s>' +
+        '</span>' +
+        '<span class="vq-price-veeqo">' +
+          '<span class="vq-price">' + money(p.unitPrice, p.currency) + '</span>' +
+          '<span class="vq-save">Save ' + save + '%</span>' +
+        '</span>' +
+      '</span>';
+  }
+
   var toastTimer;
   function toast(msg) {
     toastEl.textContent = msg;
@@ -61,7 +84,7 @@
             '<span class="vq-card__name">' + esc(p.name) + '</span>' +
             '<span class="vq-card__desc">' + esc(p.description) + '</span>' +
             '<div class="vq-card__row">' +
-              '<span class="vq-price">' + money(p.unitPrice, p.currency) + '</span>' +
+              priceBlock(p) +
               '<span class="vq-stock ' + s[0] + '">' + s[1] + '</span>' +
             '</div>' +
             '<button class="vq-btn vq-btn--dark vq-btn--block add-btn" data-sku="' + p.sku + '" ' +
@@ -89,11 +112,12 @@
     var el = document.getElementById("featured");
     if (!el) return;
     var active = window.Catalog.listActive({});
-    // Pick a few standouts: a label, a box, and void fill; then top up.
+    // Pick a few standouts: first low-stock (feels "hot"), a label, and a box.
     var picks = [];
     var byCat = function (c) { return active.find(function (p) { return p.category === c; }); };
     var label = byCat("Labels"), box = byCat("Boxes"), voidfill = byCat("Void Fill");
     [label, box, voidfill].forEach(function (p) { if (p && picks.indexOf(p) === -1) picks.push(p); });
+    // top up to 3 from whatever's active
     active.forEach(function (p) { if (picks.length < 3 && picks.indexOf(p) === -1) picks.push(p); });
 
     var badges = ["New", "500 Count", "Best value"];
@@ -106,7 +130,7 @@
           '<div class="vq-feature__body">' +
             '<span class="vq-card__sku">' + p.sku + '</span>' +
             '<span class="vq-feature__name">' + esc(p.name) + '</span>' +
-            '<span class="vq-feature__price">' + money(p.unitPrice, p.currency) + '</span>' +
+            '<div class="vq-feature__price">' + priceBlock(p) + '</div>' +
             '<button class="vq-btn vq-btn--primary vq-btn--block add-btn" data-sku="' + p.sku + '" style="margin-top:10px;">Add to cart</button>' +
           '</div>' +
         '</div>';
@@ -119,6 +143,7 @@
     var el = document.getElementById("bestsellers");
     if (!el) return;
     var active = window.Catalog.listActive({});
+    // "Best sellers" = the in-stock staples, capped at 4.
     var picks = active.filter(function (p) { return p.stockStatus === "IN_STOCK"; }).slice(0, 4);
     el.innerHTML = picks.map(function (p) {
       return '' +
@@ -128,7 +153,7 @@
             '<span class="vq-card__sku">' + p.sku + '</span>' +
             '<span class="vq-card__name">' + esc(p.name) + '</span>' +
             '<div class="vq-card__row">' +
-              '<span class="vq-price">' + money(p.unitPrice, p.currency) + '</span>' +
+              priceBlock(p) +
               '<span class="vq-stock in">Best seller</span>' +
             '</div>' +
             '<button class="vq-btn vq-btn--dark vq-btn--block add-btn" data-sku="' + p.sku + '" style="margin-top:10px;">Add to cart</button>' +
@@ -231,6 +256,7 @@
     var totals = window.Cart.totals();
     var attribution = window.Attribution.get();
 
+    // Simulate a brief PSP round-trip.
     setTimeout(function () {
       var result = window.Orders.placeOrder(totals, attribution);
       payBtn.disabled = false; payBtn.textContent = "Pay now";
@@ -238,7 +264,7 @@
       if (!result.success) {
         closeCheckout();
         if (result.code === "PAYMENT") {
-          toast("Payment failed. Please try again.");
+          toast("Payment failed. Please try again."); // Req 6 non-technical message
         } else if (result.code === "PRICING") {
           toast("Prices changed — please review your cart.");
           renderGrid();
@@ -250,6 +276,7 @@
         return;
       }
 
+      // Success: stash last order id, clear cart, go to confirmation.
       try { sessionStorage.setItem("vq_last_order", result.order.orderId); } catch (e) {}
       window.Cart.clear();
       closeCheckout();
