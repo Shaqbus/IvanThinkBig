@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Veeqo Packaging Marketplace</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="vq-header">
+    <div class="vq-header__inner">
+      <a class="vq-logo" href="index.html">
+        <span class="vq-logo__mark">V</span>
+        <span>Veeqo <span class="vq-logo__sub">Packaging Marketplace</span></span>
+      </a>
+      <nav class="vq-nav">
+        <a href="index.html" class="active">Shop</a>
+        <a href="dashboard.html">Finance Dashboard</a>
+      </nav>
+      <div class="vq-header__spacer"></div>
+      <span id="attrBadge" class="vq-attr-badge is-direct">Direct visit</span>
+      <button class="vq-cart-pill" id="cartToggle">
+        <span>Cart</span>
+        <span class="vq-cart-pill__count" id="cartCount">0</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="vq-main">
+    <div class="vq-hero">
+      <h1>Packaging materials, sourced &amp; shipped for you</h1>
+      <p>Boxes, mailers, tape, labels and void fill from our fulfillment partner — ordered in a click, fulfilled by the supplier. Veeqo runs the storefront and earns a commission on every order.</p>
+    </div>
+
+    <div class="vq-controls">
+      <div class="vq-field">
+        <label for="catFilter">Category</label>
+        <select id="catFilter"><option value="">All categories</option></select>
+      </div>
+      <div class="vq-field" style="flex:1; min-width:200px;">
+        <label for="searchBox">Search</label>
+        <input id="searchBox" type="text" placeholder="Search products or SKU…" />
+      </div>
+    </div>
+
+    <div class="vq-layout">
+      <section>
+        <div class="vq-grid" id="grid"><p class="vq-empty">Loading catalog…</p></div>
+      </section>
+
+      <aside>
+        <div class="vq-panel">
+          <h3>Your Cart</h3>
+          <div id="cartLines"><p class="vq-empty">Your cart is empty.</p></div>
+          <div class="vq-totals" id="cartTotals" style="display:none;">
+            <div class="row"><span class="muted">Subtotal</span><span id="tSubtotal">$0.00</span></div>
+            <div class="row"><span class="muted">Shipping</span><span id="tShipping">$0.00</span></div>
+            <div class="row"><span class="muted">Tax (8.25%)</span><span id="tTax">$0.00</span></div>
+            <div class="row grand"><span>Order total</span><span id="tOrderValue">$0.00</span></div>
+          </div>
+          <button class="vq-btn vq-btn--primary vq-btn--block" id="checkoutBtn" style="margin-top:14px;" disabled>Checkout</button>
+          <p class="vq-empty" style="margin-top:10px; font-size:12px;">Payment &amp; fulfillment are simulated for this demo.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="vq-footer">
+    <div class="vq-footer__inner">
+      <span>Veeqo Packaging Marketplace — concept demo</span>
+      <span class="vq-tag" id="syncInfo">catalog</span>
+    </div>
+  </footer>
+
+  <div class="vq-modal-overlay" id="checkoutModal">
+    <div class="vq-modal">
+      <div class="vq-modal__head">
+        <h3>Checkout</h3>
+        <p>Simulated payment — no real card is processed.</p>
+      </div>
+      <div class="vq-modal__body">
+        <div class="vq-field">
+          <label>Name on card</label>
+          <input type="text" id="ccName" value="Sample Shopper" />
+        </div>
+        <div class="vq-field">
+          <label>Card number</label>
+          <input type="text" id="ccNum" value="4242 4242 4242 4242" />
+          <div class="hint">Only a PSP reference is stored — never raw card data.</div>
+        </div>
+        <div class="vq-totals">
+          <div class="row grand"><span>Amount</span><span id="payAmount">$0.00</span></div>
+        </div>
+      </div>
+      <div class="vq-modal__foot">
+        <button class="vq-btn vq-btn--ghost" id="cancelCheckout">Cancel</button>
+        <button class="vq-btn vq-btn--primary" id="payBtn" style="flex:1;">Pay now</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="vq-toast" id="toast"></div>
+
+  <script src="js/attribution.js"></script>
+  <script src="js/catalog.js"></script>
+  <script src="js/commission.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/order.js"></script>
+  <script src="js/storefront.js"></script>
+</body>
+</html>

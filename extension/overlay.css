@@ -1,0 +1,23 @@
+/* overlay.css — styling for the injected Veeqo header button. */
+.vq-pkg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #17c3b2;
+  color: #16123f;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(16, 18, 45, 0.2);
+  transition: background 0.12s ease, transform 0.06s ease;
+}
+.vq-pkg-btn:hover { background: #0fa596; }
+.vq-pkg-btn:active { transform: translateY(1px); }
+.vq-pkg-btn__icon { font-size: 15px; }
+.vq-pkg-btn--inline { margin-left: 12px; }
+.vq-pkg-btn--float { position: fixed; top: 12px; right: 16px; z-index: 2147483647; }

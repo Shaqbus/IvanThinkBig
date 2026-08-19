@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance Dashboard — Veeqo Packaging Marketplace</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="vq-header">
+    <div class="vq-header__inner">
+      <a class="vq-logo" href="index.html">
+        <span class="vq-logo__mark">V</span>
+        <span>Veeqo <span class="vq-logo__sub">Packaging Marketplace</span></span>
+      </a>
+      <nav class="vq-nav">
+        <a href="index.html">Shop</a>
+        <a href="dashboard.html" class="active">Finance Dashboard</a>
+      </nav>
+      <div class="vq-header__spacer"></div>
+      <span class="vq-attr-badge" id="rateBadge">Commission —</span>
+    </div>
+  </header>
+
+  <main class="vq-main">
+    <h1 class="vq-page-title">Revenue &amp; Commission</h1>
+    <p class="vq-page-sub">Per-order revenue, Veeqo's commission split, and supplier payable. Aggregates only non-reversed revenue records (P2, P6, P11).</p>
+
+    <div class="vq-controls">
+      <div class="vq-field">
+        <label for="fromDate">From</label>
+        <input type="date" id="fromDate" />
+      </div>
+      <div class="vq-field">
+        <label for="toDate">To</label>
+        <input type="date" id="toDate" />
+      </div>
+      <div class="vq-field">
+        <label for="sourceFilter">Attribution source</label>
+        <select id="sourceFilter">
+          <option value="ALL">All sources</option>
+          <option value="VEEQO">Veeqo</option>
+          <option value="DIRECT">Direct</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+      <button class="vq-btn vq-btn--ghost" id="applyBtn">Apply</button>
+      <div class="vq-header__spacer"></div>
+      <button class="vq-btn vq-btn--ghost" id="seedBtn" title="Generate sample orders">Seed demo data</button>
+      <button class="vq-btn vq-btn--ghost" id="resetBtn" title="Clear all orders + revenue">Reset data</button>
+    </div>
+
+    <div id="rangeError" class="vq-recon bad" style="display:none;">End date is before start date — please fix the range (Req 11).</div>
+
+    <div class="vq-stats">
+      <div class="vq-stat"><div class="vq-stat__label">Orders</div><div class="vq-stat__value" id="sOrders">0</div></div>
+      <div class="vq-stat"><div class="vq-stat__label">Gross revenue</div><div class="vq-stat__value" id="sGross">$0.00</div></div>
+      <div class="vq-stat accent"><div class="vq-stat__label">Veeqo commission</div><div class="vq-stat__value" id="sCommission">$0.00</div></div>
+      <div class="vq-stat"><div class="vq-stat__label">Supplier payable</div><div class="vq-stat__value" id="sPayable">$0.00</div></div>
+    </div>
+
+    <div id="reconBanner" class="vq-recon ok">Reconciliation: commission + supplier payable = gross revenue ✓ (P2)</div>
+
+    <div class="vq-table-wrap">
+      <table class="vq-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Date</th>
+            <th>Source</th>
+            <th>Status</th>
+            <th class="num">Gross</th>
+            <th class="num">Rate</th>
+            <th class="num">Commission</th>
+            <th class="num">Supplier payable</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="9" class="vq-empty">No orders yet. Place an order from the shop, or click “Seed demo data”.</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer class="vq-footer">
+    <div class="vq-footer__inner">
+      <span>Veeqo Packaging Marketplace — concept demo</span>
+      <span class="vq-tag">Finance / Reporting Service</span>
+    </div>
+  </footer>
+
+  <div class="vq-toast" id="toast"></div>
+
+  <script src="js/attribution.js"></script>
+  <script src="js/catalog.js"></script>
+  <script src="js/commission.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/order.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

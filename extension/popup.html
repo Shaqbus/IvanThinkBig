@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body { width: 300px; margin: 0; font-family: "Segoe UI", Arial, sans-serif; color: #1b1b2f; }
+    .head { background: linear-gradient(180deg,#16123f,#211c56); color:#fff; padding: 14px 16px; border-bottom: 3px solid #17c3b2; }
+    .head h1 { margin: 0; font-size: 15px; }
+    .head p { margin: 4px 0 0; font-size: 11px; color: #cfd0e8; }
+    .body { padding: 16px; }
+    label { display:block; font-size: 12px; font-weight: 600; margin-bottom: 5px; }
+    input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; margin-bottom: 12px; }
+    button { width: 100%; background:#17c3b2; color:#16123f; border:none; border-radius:6px; padding:9px; font-weight:700; font-size:13px; cursor:pointer; }
+    button:hover { background:#0fa596; }
+    .status { font-size: 11px; color:#16a34a; text-align:center; margin-top:8px; min-height:14px; }
+    .hint { font-size:11px; color:#6b7280; margin: -6px 0 12px; }
+  </style>
+</head>
+<body>
+  <div class="head">
+    <h1>📦 Packaging Marketplace</h1>
+    <p>Configure the link-out target</p>
+  </div>
+  <div class="body">
+    <label for="url">Storefront URL</label>
+    <input id="url" type="text" placeholder="https://shaqbus.github.io/IvanThinkBig/" />
+    <label for="seller">Seller ID (for attribution)</label>
+    <input id="seller" type="text" placeholder="veeqo-seller" />
+    <div class="hint">Included in the attribution token sent to the storefront.</div>
+    <button id="save">Save settings</button>
+    <div class="status" id="status"></div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

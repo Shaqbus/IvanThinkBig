@@ -1,0 +1,16 @@
+{
+  "syncedAt": "2026-08-19T08:00:00Z",
+  "supplier": "PakSource Fulfillment Co.",
+  "products": [
+    { "sku": "BOX-12X12X6", "name": "Corrugated Shipping Box 12x12x6\"", "description": "Single-wall kraft corrugated box. 32 ECT. Sold in bundles of 25.", "unitPrice": 18.75, "supplierCost": 12.90, "currency": "USD", "stockStatus": "IN_STOCK", "active": true, "emoji": "📦", "category": "Boxes" },
+    { "sku": "BOX-8X6X4", "name": "Small Mailer Box 8x6x4\"", "description": "Compact corrugated box ideal for small parcels. Bundle of 25.", "unitPrice": 13.50, "supplierCost": 8.80, "currency": "USD", "stockStatus": "IN_STOCK", "active": true, "emoji": "📦", "category": "Boxes" },
+    { "sku": "MAILER-POLY-10X13", "name": "Poly Mailer 10x13\"", "description": "Waterproof self-seal poly mailers. Pack of 100.", "unitPrice": 9.99, "supplierCost": 5.75, "currency": "USD", "stockStatus": "IN_STOCK", "active": true, "emoji": "✉️", "category": "Mailers" },
+    { "sku": "MAILER-BUBBLE-6X10", "name": "Bubble Mailer 6x10\"", "description": "Padded kraft bubble mailers for fragile small goods. Pack of 50.", "unitPrice": 14.25, "supplierCost": 9.10, "currency": "USD", "stockStatus": "LOW_STOCK", "active": true, "emoji": "✉️", "category": "Mailers" },
+    { "sku": "TAPE-2IN-CLEAR", "name": "Packing Tape 2\" Clear (6-pack)", "description": "Heavy-duty acrylic packing tape, 110 yd rolls. 6 rolls.", "unitPrice": 16.40, "supplierCost": 10.20, "currency": "USD", "stockStatus": "IN_STOCK", "active": true, "emoji": "🎞️", "category": "Tape" },
+    { "sku": "TAPE-DISPENSER", "name": "Tape Gun Dispenser", "description": "Ergonomic side-load tape dispenser for 2\" rolls.", "unitPrice": 11.00, "supplierCost": 6.50, "currency": "USD", "stockStatus": "IN_STOCK", "active": true, "emoji": "🔫", "category": "Tape" },
+    { "sku": "LABEL-4X6-THERMAL", "name": "Thermal Shipping Labels 4x6\"", "description": "Direct thermal labels, fanfold. 500 labels per stack.", "unitPrice": 21.90, "supplierCost": 14.30, "currency": "USD", "stockStatus": "IN_STOCK", "active": true, "emoji": "🏷️", "category": "Labels" },
+    { "sku": "VOIDFILL-PAPER-15", "name": "Void Fill Kraft Paper 15\" (1500 ft)", "description": "Recyclable kraft void fill paper roll for cushioning.", "unitPrice": 34.00, "supplierCost": 23.60, "currency": "USD", "stockStatus": "IN_STOCK", "active": true, "emoji": "🧻", "category": "Void Fill" },
+    { "sku": "VOIDFILL-BUBBLE-12", "name": "Bubble Cushion Roll 12\" x 175 ft", "description": "Perforated small-bubble cushioning wrap for fragile items.", "unitPrice": 27.50, "supplierCost": 18.40, "currency": "USD", "stockStatus": "LOW_STOCK", "active": true, "emoji": "🫧", "category": "Void Fill" },
+    { "sku": "MAILER-RIGID-PHOTO", "name": "Rigid Photo Mailer 9x11.5\" (legacy)", "description": "Discontinued rigid stay-flat mailer. No longer offered by supplier.", "unitPrice": 0.00, "supplierCost": 0.00, "currency": "USD", "stockStatus": "OUT_OF_STOCK", "active": false, "emoji": "🚫", "category": "Mailers" }
+  ]
+}

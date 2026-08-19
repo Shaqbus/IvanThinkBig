@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Confirmed — Veeqo Packaging Marketplace</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="vq-header">
+    <div class="vq-header__inner">
+      <a class="vq-logo" href="index.html">
+        <span class="vq-logo__mark">V</span>
+        <span>Veeqo <span class="vq-logo__sub">Packaging Marketplace</span></span>
+      </a>
+      <nav class="vq-nav">
+        <a href="index.html">Shop</a>
+        <a href="dashboard.html">Finance Dashboard</a>
+      </nav>
+      <div class="vq-header__spacer"></div>
+    </div>
+  </header>
+
+  <main class="vq-main">
+    <div id="confirmRoot"><p class="vq-empty">Loading your order…</p></div>
+  </main>
+
+  <footer class="vq-footer">
+    <div class="vq-footer__inner">
+      <span>Veeqo Packaging Marketplace — concept demo</span>
+      <span class="vq-tag">Order confirmation</span>
+    </div>
+  </footer>
+
+  <script src="js/commission.js"></script>
+  <script src="js/order.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    var money = function (n, c) {
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: c || "USD" }).format(n);
+    };
+    function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+    var params = new URLSearchParams(location.search);
+    var orderId = params.get("order");
+    try { if (!orderId) orderId = sessionStorage.getItem("vq_last_order"); } catch (e) {}
+
+    var root = document.getElementById("confirmRoot");
+    var order = orderId ? window.Orders.getOrder(orderId) : null;
+
+    if (!order) {
+      root.innerHTML = '<div class="vq-hero"><h1>No order found</h1>' +
+        '<p>We couldn\'t find that order. <a href="index.html" style="color:#17c3b2;">Return to the shop</a>.</p></div>';
+      return;
+    }
+
+    var pending = order.status === "PAID" && order.fulfillmentPending;
+    var statusLine = order.status === "CONFIRMED"
+      ? '<span class="vq-stock in">Confirmed &amp; sent to supplier</span>'
+      : (pending
+        ? '<span class="vq-stock low">Paid — awaiting supplier confirmation</span>'
+        : '<span class="vq-stock in">' + esc(order.status) + '</span>');
+
+    var lines = order.lines.map(function (l) {
+      return '<tr><td>' + esc(l.name) + '<br><small style="color:#6b7280;">' + esc(l.sku) + '</small></td>' +
+        '<td class="num">' + l.quantity + '</td>' +
+        '<td class="num">' + money(l.unitPriceAtPurchase, order.currency) + '</td>' +
+        '<td class="num">' + money(l.lineTotal, order.currency) + '</td></tr>';
+    }).join("");
+
+    root.innerHTML =
+      '<div class="vq-hero" style="background:linear-gradient(120deg,#0fa596,#17c3b2);">' +
+        '<h1>✓ Order confirmed</h1>' +
+        '<p>Thanks! Your packaging order has been placed and handed to our fulfillment partner.</p>' +
+      '</div>' +
+      '<div class="vq-stats">' +
+        '<div class="vq-stat"><div class="vq-stat__label">Order ID</div><div class="vq-stat__value" style="font-size:15px; word-break:break-all;">' + esc(order.orderId) + '</div></div>' +
+        '<div class="vq-stat"><div class="vq-stat__label">Supplier Order ID</div><div class="vq-stat__value" style="font-size:18px;">' + esc(order.supplierOrderId || "Pending") + '</div></div>' +
+        '<div class="vq-stat"><div class="vq-stat__label">Status</div><div class="vq-stat__value" style="font-size:15px;">' + statusLine + '</div></div>' +
+        '<div class="vq-stat accent"><div class="vq-stat__label">Order Total</div><div class="vq-stat__value">' + money(order.orderValue, order.currency) + '</div></div>' +
+      '</div>' +
+      (pending ? '<div class="vq-recon bad" style="background:#fef3c7;color:#92400e;border-color:#fcd34d;">Payment captured and revenue recorded. The supplier hand-off did not complete and will be retried automatically — your card was still charged and the order is valid.</div>' : '') +
+      '<div class="vq-table-wrap" style="margin-bottom:20px;">' +
+        '<table class="vq-table"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Line total</th></tr></thead>' +
+        '<tbody>' + lines + '</tbody>' +
+        '<tfoot>' +
+          '<tr><td colspan="3" class="num" style="color:#6b7280;">Subtotal</td><td class="num">' + money(order.subtotal, order.currency) + '</td></tr>' +
+          '<tr><td colspan="3" class="num" style="color:#6b7280;">Shipping</td><td class="num">' + (order.shipping === 0 ? "FREE" : money(order.shipping, order.currency)) + '</td></tr>' +
+          '<tr><td colspan="3" class="num" style="color:#6b7280;">Tax</td><td class="num">' + money(order.tax, order.currency) + '</td></tr>' +
+          '<tr><td colspan="3" class="num" style="font-weight:700;">Order total</td><td class="num" style="font-weight:700;">' + money(order.orderValue, order.currency) + '</td></tr>' +
+        '</tfoot></table>' +
+      '</div>' +
+      '<div style="display:flex; gap:12px; align-items:center;">' +
+        '<a class="vq-btn vq-btn--primary" href="index.html">Continue shopping</a>' +
+        '<a class="vq-btn vq-btn--ghost" href="dashboard.html">View finance dashboard</a>' +
+        '<span class="vq-tag">Attribution: ' + esc(order.attribution.source) + '</span>' +
+      '</div>';
+  })();
+  </script>
+</body>
+</html>
