@@ -14,6 +14,9 @@
  *  - Correct passcode sets a sessionStorage flag and reveals the dashboard.
  *  - The flag lasts for the browser session (cleared when the tab/browser
  *    closes) or until "Sign out" is clicked.
+ *  - Overlay + content-hide styles are applied INLINE (not only via the
+ *    stylesheet) so the gate never "fails open" if styles.css is cached-stale
+ *    or slow to load.
  */
 (function () {
   "use strict";
@@ -63,14 +66,52 @@
     return overlay;
   }
 
+  /* Hide/show the real page content directly (inline), so the gate never
+   * "fails open" (data visible) if the stylesheet is cached-stale or slow to
+   * load. The body.vq-locked CSS rule is a backup; these inline styles are the
+   * guarantee. */
+  function setPageHidden(hidden) {
+    var sel = ".vq-header, .vq-main, .vq-footer";
+    var nodes = document.querySelectorAll(sel);
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].style.display = hidden ? "none" : "";
+    }
+  }
+
+  /* Critical overlay styling applied inline so the gate ALWAYS covers the
+   * viewport and centers its card, independent of the external stylesheet. */
+  function styleOverlay(overlay) {
+    var s = overlay.style;
+    s.position = "fixed";
+    s.top = "0"; s.right = "0"; s.bottom = "0"; s.left = "0";
+    s.zIndex = "2147483647";
+    s.display = "flex";
+    s.alignItems = "center";
+    s.justifyContent = "center";
+    s.padding = "20px";
+    s.background = "linear-gradient(135deg, #16123f 0%, #211c56 100%)";
+    var card = overlay.querySelector(".vq-gate__card");
+    if (card) {
+      card.style.width = "100%";
+      card.style.maxWidth = "380px";
+      card.style.background = "#fff";
+      card.style.borderRadius = "12px";
+      card.style.borderTop = "4px solid #17c3b2";
+      card.style.padding = "28px 26px";
+      card.style.boxShadow = "0 4px 14px rgba(16,18,45,0.10)";
+    }
+  }
+
   function showGate() {
     if (document.getElementById("vq-admin-gate")) return;
 
-    // Hide the real page content while locked.
+    // Hide the real page content while locked (class + inline guarantee).
     document.body.classList.add("vq-locked");
+    setPageHidden(true);
 
     var overlay = buildGate();
     document.body.appendChild(overlay);
+    styleOverlay(overlay);
 
     var form = overlay.querySelector("#vq-gate-form");
     var input = overlay.querySelector("#vq-gate-pass");
@@ -94,6 +135,7 @@
 
   function unlock() {
     document.body.classList.remove("vq-locked");
+    setPageHidden(false);
     var overlay = document.getElementById("vq-admin-gate");
     if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
     injectSignOut();
