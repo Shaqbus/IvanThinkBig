@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Veeqo Packaging Marketplace</title>
+  <title>Veeqo Supplies — Packaging &amp; Labels</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
@@ -11,10 +11,11 @@
     <div class="vq-header__inner">
       <a class="vq-logo" href="index.html">
         <span class="vq-logo__mark">V</span>
-        <span>Veeqo <span class="vq-logo__sub">Packaging Marketplace</span></span>
+        <span>Veeqo <span class="vq-logo__sub">Supplies</span></span>
       </a>
       <nav class="vq-nav">
         <a href="index.html" class="active">Shop</a>
+        <a href="#categories">Categories</a>
         <a href="dashboard.html">Finance Dashboard</a>
       </nav>
       <div class="vq-header__spacer"></div>
@@ -27,51 +28,135 @@
   </header>
 
   <main class="vq-main">
-    <div class="vq-hero">
-      <h1>Packaging materials, sourced &amp; shipped for you</h1>
-      <p>Boxes, mailers, tape, labels and void fill from our fulfillment partner — ordered in a click, fulfilled by the supplier. Veeqo runs the storefront and earns a commission on every order.</p>
-    </div>
 
-    <div class="vq-controls">
-      <div class="vq-field">
-        <label for="catFilter">Category</label>
-        <select id="catFilter"><option value="">All categories</option></select>
-      </div>
-      <div class="vq-field" style="flex:1; min-width:200px;">
-        <label for="searchBox">Search</label>
-        <input id="searchBox" type="text" placeholder="Search products or SKU…" />
-      </div>
-    </div>
-
-    <div class="vq-layout">
-      <section>
-        <div class="vq-grid" id="grid"><p class="vq-empty">Loading catalog…</p></div>
-      </section>
-
-      <aside>
-        <div class="vq-panel">
-          <h3>Your Cart</h3>
-          <div id="cartLines"><p class="vq-empty">Your cart is empty.</p></div>
-          <div class="vq-totals" id="cartTotals" style="display:none;">
-            <div class="row"><span class="muted">Subtotal</span><span id="tSubtotal">$0.00</span></div>
-            <div class="row"><span class="muted">Shipping</span><span id="tShipping">$0.00</span></div>
-            <div class="row"><span class="muted">Tax (8.25%)</span><span id="tTax">$0.00</span></div>
-            <div class="row grand"><span>Order total</span><span id="tOrderValue">$0.00</span></div>
-          </div>
-          <button class="vq-btn vq-btn--primary vq-btn--block" id="checkoutBtn" style="margin-top:14px;" disabled>Checkout</button>
-          <p class="vq-empty" style="margin-top:10px; font-size:12px;">Payment &amp; fulfillment are simulated for this demo.</p>
+    <!-- HERO -->
+    <div class="vq-hero vq-hero--lg">
+      <div>
+        <h1>Everything you need to ship, in one place</h1>
+        <p>Premium packaging and thermal labels — boxes, mailers, tape, void fill and shipping labels. Wholesale pricing, fast fulfillment, and expert support, sourced through our fulfillment partner.</p>
+        <div class="vq-hero__ctas">
+          <a class="vq-btn vq-btn--primary" href="#shop">Shop supplies</a>
+          <a class="vq-btn vq-btn--ghost" href="#categories" style="color:#fff; border-color:rgba(255,255,255,0.35);">Shop by category</a>
         </div>
-      </aside>
+      </div>
+      <div class="vq-hero__callout">
+        <h4>High-volume shipper?</h4>
+        <p>Ship thousands of orders a month? Request custom wholesale pricing tailored to your volume.</p>
+        <button class="vq-btn vq-btn--primary vq-btn--block" id="customPricingBtn">Request custom pricing</button>
+      </div>
     </div>
+
+    <!-- TRUST BAR -->
+    <div class="vq-trustbar">
+      <div class="vq-trust"><span class="vq-trust__icon">🚚</span><span><span class="vq-trust__t">Fast fulfillment</span><br><span class="vq-trust__s">Shipped by our partner</span></span></div>
+      <div class="vq-trust"><span class="vq-trust__icon">🏷️</span><span><span class="vq-trust__t">Wholesale pricing</span><br><span class="vq-trust__s">Volume discounts available</span></span></div>
+      <div class="vq-trust"><span class="vq-trust__icon">✅</span><span><span class="vq-trust__t">Veeqo-tested</span><br><span class="vq-trust__s">Compatible with your workflow</span></span></div>
+      <div class="vq-trust"><span class="vq-trust__icon">💬</span><span><span class="vq-trust__t">Expert support</span><br><span class="vq-trust__s">Real people, real answers</span></span></div>
+    </div>
+
+    <!-- FEATURED -->
+    <section class="vq-section">
+      <div class="vq-section__head">
+        <div class="vq-section__eyebrow">Featured</div>
+        <h2 class="vq-section__title">Popular right now</h2>
+        <p class="vq-section__sub">Fresh picks and the staples sellers reorder most.</p>
+      </div>
+      <div class="vq-featured" id="featured"><p class="vq-empty">Loading…</p></div>
+    </section>
+
+    <!-- BEST SELLERS -->
+    <section class="vq-section">
+      <div class="vq-section__head">
+        <div class="vq-section__eyebrow">Best sellers</div>
+        <h2 class="vq-section__title">What Veeqo sellers reorder</h2>
+        <p class="vq-section__sub">The packaging and labels our top shippers buy month after month.</p>
+      </div>
+      <div class="vq-grid" id="bestsellers"><p class="vq-empty">Loading…</p></div>
+    </section>
+
+    <!-- SHOP BY CATEGORY -->
+    <section class="vq-section" id="categories">
+      <div class="vq-section__head">
+        <div class="vq-section__eyebrow">Shop by category</div>
+        <h2 class="vq-section__title">Everything you need to ship</h2>
+        <p class="vq-section__sub">From the box to the label — pick a category to filter the catalog below.</p>
+      </div>
+      <div class="vq-cats" id="catTiles"></div>
+    </section>
+
+    <!-- SHOP (full catalog + cart) -->
+    <section id="shop">
+      <div class="vq-section__head">
+        <h2 class="vq-section__title">Shop all supplies</h2>
+      </div>
+      <div class="vq-controls">
+        <div class="vq-field">
+          <label for="catFilter">Category</label>
+          <select id="catFilter"><option value="">All categories</option></select>
+        </div>
+        <div class="vq-field" style="flex:1; min-width:200px;">
+          <label for="searchBox">Search</label>
+          <input id="searchBox" type="text" placeholder="Search products or SKU…" />
+        </div>
+      </div>
+
+      <div class="vq-layout">
+        <section>
+          <div class="vq-grid" id="grid"><p class="vq-empty">Loading catalog…</p></div>
+        </section>
+
+        <aside>
+          <div class="vq-panel">
+            <h3>Your Cart</h3>
+            <div id="cartLines"><p class="vq-empty">Your cart is empty.</p></div>
+            <div class="vq-totals" id="cartTotals" style="display:none;">
+              <div class="row"><span class="muted">Subtotal</span><span id="tSubtotal">$0.00</span></div>
+              <div class="row"><span class="muted">Shipping</span><span id="tShipping">$0.00</span></div>
+              <div class="row"><span class="muted">Tax (8.25%)</span><span id="tTax">$0.00</span></div>
+              <div class="row grand"><span>Order total</span><span id="tOrderValue">$0.00</span></div>
+            </div>
+            <button class="vq-btn vq-btn--primary vq-btn--block" id="checkoutBtn" style="margin-top:14px;" disabled>Checkout</button>
+            <p class="vq-empty" style="margin-top:10px; font-size:12px;">Payment &amp; fulfillment are simulated for this demo.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="vq-section" style="margin-top:40px;">
+      <div class="vq-section__head">
+        <div class="vq-section__eyebrow">Testimonials</div>
+        <h2 class="vq-section__title">Sellers keep coming back</h2>
+      </div>
+      <div class="vq-testimonials">
+        <div class="vq-quote">
+          <div class="vq-quote__stars">★★★★★</div>
+          <p class="vq-quote__text">"Reordering boxes and labels used to be three tabs and a phone call. Now it's one click from inside Veeqo. Huge time-saver during peak."</p>
+          <div class="vq-quote__who"><span class="vq-quote__avatar">MR</span><span><span class="vq-quote__name">Maria R.</span><br><span class="vq-quote__role">Ops Lead, DTC apparel brand</span></span></div>
+        </div>
+        <div class="vq-quote">
+          <div class="vq-quote__stars">★★★★★</div>
+          <p class="vq-quote__text">"The wholesale pricing on thermal labels alone paid for itself. Fulfillment has been fast and consistent every order."</p>
+          <div class="vq-quote__who"><span class="vq-quote__avatar">JT</span><span><span class="vq-quote__name">James T.</span><br><span class="vq-quote__role">Founder, home goods store</span></span></div>
+        </div>
+        <div class="vq-quote">
+          <div class="vq-quote__stars">★★★★★</div>
+          <p class="vq-quote__text">"Having supplies right next to my shipping workflow just makes sense. One less vendor to manage."</p>
+          <div class="vq-quote__who"><span class="vq-quote__avatar">PK</span><span><span class="vq-quote__name">Priya K.</span><br><span class="vq-quote__role">Warehouse Manager, 3PL</span></span></div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <footer class="vq-footer">
     <div class="vq-footer__inner">
-      <span>Veeqo Packaging Marketplace — concept demo</span>
+      <span>Veeqo Supplies — concept demo</span>
       <span class="vq-tag" id="syncInfo">catalog</span>
     </div>
   </footer>
 
+  <!-- Checkout modal -->
   <div class="vq-modal-overlay" id="checkoutModal">
     <div class="vq-modal">
       <div class="vq-modal__head">
