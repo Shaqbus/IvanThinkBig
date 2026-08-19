@@ -1,0 +1,178 @@
+{
+  "source_file": "Design Document.docx",
+  "document_title": "Design Document: Veeqo Packaging Marketplace",
+  "format": "structured_docx_conversion",
+  "sections": [
+    {
+      "title": "Overview",
+      "items": [
+        { "type": "paragraph", "text": "The Veeqo Packaging Marketplace is a standalone public storefront website that serves as a link-out destination from Veeqo. It sells packaging materials (boxes, mailers, tape, labels, void fill, etc.) that are sourced from and fulfilled by an external third-party supplier. Veeqo does not hold inventory; it operates the storefront, processes checkout, and earns a commission calculated as a configurable percentage of each order's value.", "source_paragraph": 3 },
+        { "type": "paragraph", "text": "The system has three primary responsibilities: (1) present a supplier-sourced product catalog to shoppers arriving from Veeqo, (2) accept and process orders including payment and hand-off of fulfillment to the supplier, and (3) track order value, gross revenue, and Veeqo's commission split per order so that finance and business stakeholders can report on marketplace performance.", "source_paragraph": 4 },
+        { "type": "paragraph", "text": "This design combines a high-level view (architecture, component boundaries, sequence flows, data models) with a low-level view (structured pseudocode algorithms, function signatures, and correctness properties) so the technical approach is fully specified before requirements are derived.", "source_paragraph": 5 }
+      ]
+    },
+    {
+      "title": "Architecture",
+      "items": [
+        { "type": "paragraph", "text": "The system is a web storefront backed by a set of backend services, an operational datastore, an external payment provider, and an external third-party supplier integration. Shoppers arrive via an attributed link from Veeqo (carrying a referral/attribution token so orders can be traced back to Veeqo).", "source_paragraph": 7 },
+        { "type": "paragraph", "text": "Key architectural decisions:", "source_paragraph": 23 },
+        { "type": "paragraph", "text": "Veeqo does not own inventory. The Catalog Service periodically syncs product data (SKUs, prices, availability) from the supplier. Orders trigger a fulfillment submission back to the supplier.", "source_paragraph": 24 },
+        { "type": "paragraph", "text": "Commission is computed and persisted at order confirmation time, not at read time, so historical commission is stable even if the commission rate changes later.", "source_paragraph": 25 },
+        { "type": "paragraph", "text": "Attribution is captured at session start (from the Veeqo link-out) and stored on the order so revenue can always be traced to Veeqo.", "source_paragraph": 26 },
+        { "type": "paragraph", "text": "Payment is delegated to an external PSP. The system stores only PSP references and amounts, never raw card data.", "source_paragraph": 27 }
+      ]
+    },
+    {
+      "title": "Components and Interfaces",
+      "items": [
+        { "type": "subsection", "title": "Component 1: Storefront Web App", "items": [
+          { "type": "label", "text": "Purpose: Public-facing website that lists packaging materials and handles the shopper journey (browse, cart, checkout). Entry point for Veeqo link-outs." },
+          { "type": "code_or_spec", "text": "INTERFACE StorefrontController" },
+          { "type": "paragraph", "text": "PROCEDURE handleLinkOut(attributionToken: String): Session" },
+          { "type": "paragraph", "text": "PROCEDURE listProducts(filter: CatalogFilter): List OF ProductView" },
+          { "type": "paragraph", "text": "PROCEDURE viewProduct(sku: String): ProductView" },
+          { "type": "paragraph", "text": "PROCEDURE checkout(cart: Cart, session: Session): OrderConfirmation" },
+          { "type": "code_or_spec", "text": "END INTERFACE" }
+        ]},
+        { "type": "subsection", "title": "Component 2: Catalog Service", "items": [
+          { "type": "label", "text": "Purpose: Owns the marketplace's view of the supplier's products. Syncs from the supplier and serves catalog reads." },
+          { "type": "code_or_spec", "text": "INTERFACE CatalogService" },
+          { "type": "paragraph", "text": "PROCEDURE syncCatalog(): SyncResult" },
+          { "type": "paragraph", "text": "PROCEDURE getProduct(sku: String): Product" },
+          { "type": "paragraph", "text": "PROCEDURE listActiveProducts(filter: CatalogFilter): List OF Product" },
+          { "type": "paragraph", "text": "PROCEDURE validateCartPricing(cart: Cart): PricingValidation" },
+          { "type": "code_or_spec", "text": "END INTERFACE" }
+        ]},
+        { "type": "subsection", "title": "Component 3: Order Service", "items": [
+          { "type": "label", "text": "Purpose: Creates and manages orders through their lifecycle and coordinates payment, commission recording, and supplier fulfillment." },
+          { "type": "code_or_spec", "text": "INTERFACE OrderService" },
+          { "type": "paragraph", "text": "PROCEDURE createOrder(cart: Cart, attribution: Attribution): Order" },
+          { "type": "paragraph", "text": "PROCEDURE confirmPayment(orderId: UUID, paymentRef: String): Order" },
+          { "type": "paragraph", "text": "PROCEDURE submitFulfillment(orderId: UUID): FulfillmentResult" },
+          { "type": "paragraph", "text": "PROCEDURE getOrder(orderId: UUID): Order" },
+          { "type": "code_or_spec", "text": "END INTERFACE" }
+        ]},
+        { "type": "subsection", "title": "Component 4: Payment Service", "items": [
+          { "type": "label", "text": "Purpose: Abstracts the external payment provider (PSP). Never stores raw card data." },
+          { "type": "code_or_spec", "text": "INTERFACE PaymentService" },
+          { "type": "paragraph", "text": "PROCEDURE authorizePayment(orderId: UUID, amount: Money): PaymentResult" },
+          { "type": "paragraph", "text": "PROCEDURE refund(paymentRef: String, amount: Money): RefundResult" },
+          { "type": "code_or_spec", "text": "END INTERFACE" }
+        ]},
+        { "type": "subsection", "title": "Component 5: Revenue and Commission Service", "items": [
+          { "type": "label", "text": "Purpose: Computes and persists per-order revenue and Veeqo's commission split. Source of truth for financial tracking." },
+          { "type": "code_or_spec", "text": "INTERFACE RevenueCommissionService" },
+          { "type": "paragraph", "text": "PROCEDURE recordRevenueAndCommission(order: Order): RevenueRecord" },
+          { "type": "paragraph", "text": "PROCEDURE getActiveCommissionRate(atTime: Timestamp): CommissionRate" },
+          { "type": "paragraph", "text": "PROCEDURE reverseRevenue(orderId: UUID, reason: String): RevenueRecord" },
+          { "type": "code_or_spec", "text": "END INTERFACE" }
+        ]},
+        { "type": "subsection", "title": "Component 6: Reporting Service", "items": [
+          { "type": "label", "text": "Purpose: Aggregates orders, revenue, and commission for reporting and dashboards." },
+          { "type": "code_or_spec", "text": "INTERFACE ReportingService" },
+          { "type": "paragraph", "text": "PROCEDURE getRevenueSummary(range: DateRange, source: AttributionSource): RevenueSummary" },
+          { "type": "paragraph", "text": "PROCEDURE getOrderReport(range: DateRange, filter: OrderFilter): OrderReport" },
+          { "type": "code_or_spec", "text": "END INTERFACE" }
+        ]},
+        { "type": "subsection", "title": "Component 7: Supplier Integration Adapter", "items": [
+          { "type": "label", "text": "Purpose: Encapsulates all communication with the external third-party supplier (catalog pull, fulfillment submission, status polling)." },
+          { "type": "code_or_spec", "text": "INTERFACE SupplierAdapter" },
+          { "type": "paragraph", "text": "PROCEDURE fetchCatalog(): List OF SupplierProduct" },
+          { "type": "paragraph", "text": "PROCEDURE submitFulfillment(order: Order): SupplierFulfillmentAck" },
+          { "type": "paragraph", "text": "PROCEDURE getFulfillmentStatus(supplierOrderId: String): FulfillmentStatus" },
+          { "type": "code_or_spec", "text": "END INTERFACE" }
+        ]}
+      ]
+    },
+    {
+      "title": "Data Models",
+      "items": [
+        { "type": "subsection", "title": "Model: Product", "items": [
+          { "type": "code_or_spec", "text": "STRUCTURE Product { sku, name, description, unitPrice: Money, supplierCost: Money, currency (ISO 4217), stockStatus: Enum { IN_STOCK, LOW_STOCK, OUT_OF_STOCK }, active: Boolean, lastSyncedAt: Timestamp }" },
+          { "type": "label", "text": "Validation Rules: sku non-empty and unique; unitPrice >= 0 and supplierCost >= 0; currency is a valid ISO 4217 code; an inactive product MUST NOT be purchasable." }
+        ]},
+        { "type": "subsection", "title": "Model: Attribution", "items": [
+          { "type": "code_or_spec", "text": "STRUCTURE Attribution { source: Enum { VEEQO, DIRECT, OTHER }, token: String (opaque), capturedAt: Timestamp }" },
+          { "type": "label", "text": "Validation Rules: When source = VEEQO, token MUST be non-empty. capturedAt MUST be at or before order creation time." }
+        ]},
+        { "type": "subsection", "title": "Model: Order", "items": [
+          { "type": "code_or_spec", "text": "STRUCTURE OrderLine { sku, quantity: Integer (>0), unitPriceAtPurchase: Money, lineTotal: Money = unitPriceAtPurchase * quantity }" },
+          { "type": "code_or_spec", "text": "STRUCTURE Order { orderId: UUID, lines: List OF OrderLine, subtotal: Money, shipping: Money, tax: Money, orderValue: Money = subtotal + shipping + tax, currency, attribution: Attribution, paymentRef: String, supplierOrderId: String, status: Enum { PENDING_PAYMENT, PAID, CONFIRMED, FULFILLED, CANCELLED, REFUNDED }, createdAt, updatedAt }" },
+          { "type": "label", "text": "Validation Rules: lines non-empty; each quantity > 0; subtotal = SUM(line.lineTotal); orderValue = subtotal + shipping + tax; status transitions MUST follow PENDING_PAYMENT -> PAID -> CONFIRMED -> FULFILLED, with CANCELLED reachable from PENDING_PAYMENT/PAID and REFUNDED reachable from CONFIRMED/FULFILLED." }
+        ]},
+        { "type": "subsection", "title": "Model: CommissionRate", "items": [
+          { "type": "code_or_spec", "text": "STRUCTURE CommissionRate { ratePercent: Decimal (e.g. 12.5), effectiveFrom: Timestamp, effectiveTo: Timestamp (null if current), basis: Enum { SUBTOTAL, ORDER_VALUE } }" },
+          { "type": "label", "text": "Validation Rules: 0 <= ratePercent <= 100. Rate periods MUST NOT overlap; exactly one rate is active at any time." }
+        ]},
+        { "type": "subsection", "title": "Model: RevenueRecord", "items": [
+          { "type": "code_or_spec", "text": "STRUCTURE RevenueRecord { recordId: UUID, orderId: UUID, grossRevenue: Money, commissionBasisAmount: Money, commissionRatePercent: Decimal (immutable), veeqoCommission: Money = commissionBasisAmount * rate / 100, supplierPayable: Money = grossRevenue - veeqoCommission, currency, attributionSource: Enum { VEEQO, DIRECT, OTHER }, recordedAt: Timestamp, reversed: Boolean }" },
+          { "type": "label", "text": "Validation Rules: veeqoCommission = round(commissionBasisAmount * commissionRatePercent / 100); veeqoCommission + supplierPayable reconciles to the defined split of grossRevenue; a RevenueRecord is immutable once written; reversals create a linked reversing record rather than mutating in place." }
+        ]}
+      ]
+    },
+    {
+      "title": "Key Functions with Formal Specifications",
+      "items": [
+        { "type": "subsection", "title": "Function: computeVeeqoCommission()", "items": [
+          { "type": "code_or_spec", "text": "FUNCTION computeVeeqoCommission(order: Order, rate: CommissionRate): Money" },
+          { "type": "label", "text": "Preconditions: order.status IN { PAID, CONFIRMED }; 0 <= rate.ratePercent <= 100; rate.effectiveFrom <= order.createdAt AND (rate.effectiveTo IS null OR order.createdAt < rate.effectiveTo); order.subtotal, order.orderValue non-negative and internally consistent." },
+          { "type": "label", "text": "Postconditions: Returns a non-negative Money value in order.currency. If rate.basis = SUBTOTAL, result = round(order.subtotal * rate.ratePercent / 100). If rate.basis = ORDER_VALUE, result = round(order.orderValue * rate.ratePercent / 100). Result <= the commission basis amount." }
+        ]},
+        { "type": "subsection", "title": "Function: createOrder()", "items": [
+          { "type": "code_or_spec", "text": "FUNCTION createOrder(cart: Cart, attribution: Attribution): Order" },
+          { "type": "label", "text": "Preconditions: cart.lines non-empty; every line references an active catalog product with quantity > 0; each cart line price equals the current catalog unitPrice for that SKU." },
+          { "type": "label", "text": "Postconditions: Returns an Order with status = PENDING_PAYMENT; order.subtotal = SUM(line.lineTotal) and order.orderValue = subtotal + shipping + tax; order.attribution = attribution (preserved verbatim); no payment taken and no fulfillment submitted." }
+        ]},
+        { "type": "subsection", "title": "Function: recordRevenueAndCommission()", "items": [
+          { "type": "code_or_spec", "text": "FUNCTION recordRevenueAndCommission(order: Order): RevenueRecord" },
+          { "type": "label", "text": "Preconditions: order.status = PAID (or CONFIRMED) and order.paymentRef is set; no existing non-reversed RevenueRecord for order.orderId (idempotency)." },
+          { "type": "label", "text": "Postconditions: Returns an immutable RevenueRecord; record.veeqoCommission = computeVeeqoCommission(order, activeRate); record.grossRevenue = order.orderValue; record.supplierPayable = record.grossRevenue - record.veeqoCommission; record.commissionRatePercent captures the rate used, immune to later rate changes." }
+        ]}
+      ]
+    },
+    {
+      "title": "Correctness Properties",
+      "items": [
+        { "type": "paragraph", "text": "These properties should hold universally and are candidates for property-based tests during implementation.", "source_paragraph": 366 },
+        { "type": "paragraph", "text": "P1 (Commission bounds): For all orders o and active rates r, 0 <= computeVeeqoCommission(o, r) <= commissionBasis(o, r). Veeqo's cut never exceeds the value it is drawn from and is never negative.", "source_paragraph": 367 },
+        { "type": "paragraph", "text": "P2 (Revenue reconciliation): For all non-reversed revenue records, veeqoCommission + supplierPayable == grossRevenue (within rounding tolerance of the smallest currency unit).", "source_paragraph": 368 },
+        { "type": "paragraph", "text": "P3 (Rate immutability): For all orders, the commissionRatePercent stored on the RevenueRecord equals the rate that was active at order.createdAt, and remains unchanged if the commission rate is later updated.", "source_paragraph": 369 },
+        { "type": "paragraph", "text": "P4 (Attribution preservation): For all orders created from a Veeqo link-out, order.attribution.source == VEEQO and the token is preserved unmodified from session capture to the persisted order.", "source_paragraph": 370 },
+        { "type": "paragraph", "text": "P5 (Idempotent revenue): Calling recordRevenueAndCommission more than once for the same order produces at most one non-reversed RevenueRecord.", "source_paragraph": 371 },
+        { "type": "paragraph", "text": "P6 (No payment without record): For every order in status CONFIRMED or FULFILLED, there exists exactly one non-reversed RevenueRecord.", "source_paragraph": 372 },
+        { "type": "paragraph", "text": "P7 (Subtotal integrity): For all orders, order.subtotal == SUM(line.unitPriceAtPurchase * line.quantity) and order.orderValue == subtotal + shipping + tax.", "source_paragraph": 373 },
+        { "type": "paragraph", "text": "P8 (Inactive products unpurchasable): No order line may reference a product whose active == false at order creation time.", "source_paragraph": 374 },
+        { "type": "paragraph", "text": "P9 (Reversal correctness): Refunding an order creates a reversing RevenueRecord such that summed revenue and summed commission for the affected order net to zero.", "source_paragraph": 375 }
+      ]
+    },
+    {
+      "title": "Error Handling",
+      "items": [
+        { "type": "label", "text": "Payment Failure — Condition: PSP declines or times out during authorizePayment. Response: Order cancelled (status = CANCELLED); no revenue record created; shopper sees a non-technical retry message. Recovery: Shopper may retry checkout, creating a fresh order." },
+        { "type": "label", "text": "Fulfillment Rejection After Payment — Condition: Payment succeeded but the supplier rejects or is unreachable on submitFulfillment. Response: Order remains PAID (not CONFIRMED); event logged for reconciliation; revenue record still exists. Recovery: Retry fulfillment via a background job; if permanently unfulfillable, issue a refund which triggers a reversing revenue record (P9)." },
+        { "type": "label", "text": "Catalog Price Drift — Condition: Catalog price changed between cart build and checkout. Response: validateCartPricing fails; order not created; shopper shown updated pricing. Recovery: Shopper reviews and re-submits." },
+        { "type": "label", "text": "Supplier Sync Failure — Condition: fetchCatalog fails or returns malformed data. Response: Abort the sync run without deactivating existing products; log and alert. Never deactivate the whole catalog on a failed/empty fetch. Recovery: Retry on next scheduled sync; last-known-good catalog remains served." },
+        { "type": "label", "text": "Commission Rate Ambiguity — Condition: No active rate found, or overlapping rates, at order time. Response: Fail closed for commission recording; block order confirmation and alert finance rather than guessing a rate. Recovery: Operator corrects rate configuration; order confirmation retried." }
+      ]
+    },
+    {
+      "title": "Security Considerations",
+      "items": [
+        { "type": "paragraph", "text": "No raw card data is stored; only PSP references and amounts." },
+        { "type": "paragraph", "text": "The Veeqo attribution token is treated as untrusted input, validated and stored as an opaque value." },
+        { "type": "paragraph", "text": "Commission rate configuration is an administrative, audited action (who changed it, when, and the old/new values)." },
+        { "type": "paragraph", "text": "All supplier and PSP communication occurs over authenticated, encrypted channels." }
+      ]
+    },
+    {
+      "title": "Dependencies",
+      "items": [
+        { "type": "paragraph", "text": "External Payment Provider (PSP): card processing, refunds." },
+        { "type": "paragraph", "text": "Third-Party Supplier API: catalog source and fulfillment." },
+        { "type": "paragraph", "text": "Operational Datastore: products, orders, commission rates, revenue records." },
+        { "type": "paragraph", "text": "Scheduler: triggers periodic catalog sync and fulfillment retry jobs." },
+        { "type": "paragraph", "text": "Veeqo (upstream): originates attributed link-outs to the storefront." }
+      ]
+    }
+  ]
+}
