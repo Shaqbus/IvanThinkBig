@@ -19,6 +19,11 @@
     return {
       sku: String(p.sku || "").trim(), name: p.name || "", description: p.description || "",
       unitPrice: Number(p.unitPrice) || 0, supplierCost: Number(p.supplierCost) || 0,
+      // Illustrative "Market Price" reference + savings %, used for the strikethrough
+      // price comparison on product cards. Preserved only when present/valid; otherwise
+      // left undefined so priceBlock() falls back to the plain price.
+      marketPrice: (typeof p.marketPrice === "number" && p.marketPrice > 0) ? p.marketPrice : undefined,
+      savingsPct: (typeof p.savingsPct === "number") ? p.savingsPct : undefined,
       currency: p.currency || "USD", stockStatus: p.stockStatus || "OUT_OF_STOCK",
       active: p.active === true, emoji: p.emoji || "📦", category: p.category || "Other"
     };
