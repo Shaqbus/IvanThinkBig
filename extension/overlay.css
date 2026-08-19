@@ -1,4 +1,6 @@
-/* overlay.css — styling for the injected Veeqo header button. */
+/* overlay.css — styling for the injected Veeqo header button.
+   Uses Veeqo's teal accent so it blends into the app header. */
+
 .vq-pkg-btn {
   display: inline-flex;
   align-items: center;
@@ -19,5 +21,24 @@
 .vq-pkg-btn:hover { background: #0fa596; }
 .vq-pkg-btn:active { transform: translateY(1px); }
 .vq-pkg-btn__icon { font-size: 15px; }
+
 .vq-pkg-btn--inline { margin-left: 12px; }
-.vq-pkg-btn--float { position: fixed; top: 12px; right: 16px; z-index: 2147483647; }
+
+/* Inline nav-item variant: sits as a real <li> inside the Veeqo top navbar
+   (data-pensieve-feature="top-navbar"), aligned with Settings / Export Codes. */
+.vq-pkg-btn--navitem {
+  margin-left: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 4px;
+  white-space: nowrap;
+  align-self: center;
+}
+
+/* Floating fallback if no header target is found */
+.vq-pkg-btn--float {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  z-index: 2147483647;
+}
